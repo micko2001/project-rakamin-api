@@ -1,0 +1,24 @@
+{
+  "name": "project-rakamin-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/micko2001/project-rakamin-api.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/micko2001/project-rakamin-api/issues"
+  },
+  "homepage": "https://github.com/micko2001/project-rakamin-api#readme",
+  "description": "",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}
