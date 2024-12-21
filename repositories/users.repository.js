@@ -58,13 +58,14 @@ const createUser = async (user) => {
 };
 
 const getHistory = async (user) => {
-  const { username, name, password, avatar, point } = user;
-  const client = await pool.connect();
-
   try {
-    const history = `SELECT player1_id, player2_id, id, win, lose, 
+    const result = await pool.query(
+    `SELECT id, player1_id, player2_id, win, lose, 
     FROM rooms
-    ORDER BY created_at DESC LIMIT 10`;
+    ORDER BY created_at DESC LIMIT 10`
+    );
+
+    return result;
   } catch (error) {
     throw new Error("Something went wrong");
   }
@@ -74,5 +75,5 @@ module.exports = {
   createUser,
   findUserById,
   findUserByEmail,
-  getHistory
+  getHistory,
 };
