@@ -47,21 +47,18 @@ const createUser = async (user) => {
     await client.query("COMMIT");
 
     return {
-      ...newUser
+      ...newUser,
     };
   } catch (error) {
     await client.query("ROLLBACK");
-    throw new Error(
-      "Database error occurred while creating the user."
-    );
+    throw new Error("Database error occurred while creating the user.");
   } finally {
     client.release();
   }
 };
 
-
 module.exports = {
   createUser,
   findUserById,
-  findUserByEmail
+  findUserByEmail,
 };

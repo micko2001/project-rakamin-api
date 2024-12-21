@@ -8,8 +8,8 @@ const roomRouter = require("./routers/rooms.router");
 const globalErrorHandler = require("./middlewares/error.middleware");
 
 const app = express();
-const port = 8080;
-app.use(cors({ origin: "*"}));
+const port = process.env.APP_PORT;
+app.use(cors());
 app.use(bodyParser.json());
 app.use(
   bodyParser.urlencoded({

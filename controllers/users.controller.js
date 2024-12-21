@@ -10,7 +10,7 @@ const {
 const registerSchema = Joi.object({
   email: Joi.string().email().required(),
   username: Joi.string().required(),
-  password: Joi.string().min(8).required(),
+  password: Joi.string().min(5).required(),
   avatar: Joi.string().optional(),
   name: Joi.string().required(),
 });
@@ -47,7 +47,7 @@ const createUser = async (req, res, next) => {
     if (error instanceof UserAlreadyExistsError) {
       return res.status(error.status).json({ error: error.message });
     }
-    next(error); 
+    next(error);
   }
 };
 
