@@ -19,6 +19,7 @@ CREATE TABLE rooms (
     win INT,
     lose INT,
     created_at TIMESTAMP DEFAULT NOW(),
-    initialize_at TIMESTAMP DEFAULT NOW()
+    initialize_at TIMESTAMP DEFAULT NOW(),
+    finish_at TIMESTAMP DEFAULT NOW()
 
 )
