@@ -4,8 +4,8 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 
 const userRouter = require("./routers/users.router");
-// const transactionRouter = require("./routers/transactions.router");
-const globalErrorHandler = require("./middlewares/error.middleware");
+const roomRouter = require("./routers/rooms.router");
+//const globalErrorHandler = require("./middlewares/error.middleware");
 
 const app = express();
 const port = 8080;
@@ -18,9 +18,9 @@ app.use(
 );
 
 app.use(userRouter);
-// app.use(transactionRouter);
+app.use(roomRouter);
 
-app.use(globalErrorHandler);
+//app.use(globalErrorHandler);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
