@@ -56,4 +56,8 @@ const getUserById = async (id) => {
   };
 };
 
-module.exports = { createUser, login, getUserById };
+const getHistoryForUser = async (userId) => {
+  return await userRepository.getHistory(userId);
+};
+
+module.exports = { createUser, login, getUserById, getHistoryForUser };

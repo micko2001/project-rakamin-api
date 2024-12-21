@@ -72,4 +72,18 @@ const login = async (req, res, next) => {
   }
 };
 
-module.exports = { createUser, login, getUserById };
+const getHistory = async (req, res, next) => {
+  try {
+      const userId = req.user.id;
+      const history = await userService.getHistoryForUser(userId);
+
+      res.status(200).json({
+          success: true,
+          data: history,
+      });
+  } catch (error) {
+      next(error);
+  }
+};
+
+module.exports = { createUser, login, getUserById, getHistory };
