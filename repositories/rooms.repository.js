@@ -97,10 +97,32 @@ const findRoomId = async (playerId, roomId) => {
   }
 };
 
+const findGameId = async (playerId, roomId) => {
+  try {
+    const gameIsFound = await pool.query(
+      `SELECT 
+        rooms.*, 
+        users.avatar,
+        users.name
+      FROM rooms
+      JOIN users
+        ON users.id = $2 
+       WHERE rooms.id = $1 AND (player1_id = $2 OR player2_id = $2)
+      `,
+      [roomId, playerId]
+    );
+    return gameIsFound.rows[0];
+  } catch (err) {
+    console.log(err);
+    throw new Error("Something went wrong");
+  }
+};
+
 module.exports = {
   createRoom,
   findRoomById,
   joinRoom,
   invalidRoom,
   findRoomId,
+  findGameId
 };

@@ -47,4 +47,19 @@ const roomInfo = async (req, res, next) => {
   }
 };
 
-module.exports = { createRoom, joinRoom, roomInfo };
+const gameInfo = async (req, res, next) => {
+  try {
+    const { error, value } = joinRoomSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+    const { roomId } = value;
+    const userId = req.user.id;
+    const gameInfo = await roomService.gameInfo(userId, roomId);
+    res.status(200).json({ data: gameInfo });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { createRoom, joinRoom, roomInfo, gameInfo };

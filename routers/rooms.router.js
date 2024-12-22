@@ -12,6 +12,9 @@ router.post("/join-room", authenticateToken, roomController.joinRoom);
 //get roomInfo
 router.post("/room-info", authenticateToken, roomController.roomInfo);
 
+//get gameInfo
+router.post("/game-info", authenticateToken, roomController.gameInfo);
+
 //post finishGame
 //get gameInfo
 

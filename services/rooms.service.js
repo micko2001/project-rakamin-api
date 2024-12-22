@@ -45,4 +45,16 @@ const roomInfo = async (userId, roomId) => {
   return roomExist;
 };
 
-module.exports = { createRoom, joinRoom, roomInfo };
+const gameInfo = async (userId, roomId) => {
+  const gameExist = await roomRepository.findGameId(userId, roomId);
+
+  console.log(gameExist);
+  if (!gameExist) {
+    throw new NotFoundError("Game is not found");
+  }
+
+
+  return gameExist;
+};
+
+module.exports = { createRoom, joinRoom, roomInfo, gameInfo };
