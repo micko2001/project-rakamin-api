@@ -30,17 +30,17 @@ const findUserByEmail = async (email) => {
 };
 
 const createUser = async (user) => {
-  const { email, username, name, password, avatar, point } = user;
+  const { email, name, password, avatar, point } = user;
 
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
     const userResult = await client.query(
-      `INSERT INTO users (email, username, name, password, avatar) 
-       VALUES ($1, $2, $3, $4, $5) 
-       RETURNING id, email, username, name, avatar`,
-      [email, username, name, password, avatar]
+      `INSERT INTO users (email, name, password, avatar) 
+       VALUES ($1, $2, $3, $4) 
+       RETURNING id, email, name, avatar`,
+      [email, name, password, avatar]
     );
     const newUser = userResult.rows[0];
 
