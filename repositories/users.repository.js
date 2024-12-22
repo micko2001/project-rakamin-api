@@ -37,10 +37,10 @@ const createUser = async (user) => {
   try {
     await client.query("BEGIN");
     const userResult = await client.query(
-      `INSERT INTO users (email, username, name, password, avatar) 
-       VALUES ($1, $2, $3, $4, $5) 
-       RETURNING id, email, username, name, avatar`,
-      [email, username, name, password, avatar]
+      `INSERT INTO users (email, name, password, avatar) 
+       VALUES ($1, $2, $3, $4) 
+       RETURNING id, email, name, avatar`,
+      [email, name, password, avatar]
     );
     const newUser = userResult.rows[0];
 
@@ -60,11 +60,23 @@ const createUser = async (user) => {
 const getHistory = async (user) => {
   try {
     const result = await pool.query(
-    `SELECT id, player1_id, player2_id, win, lose, 
-    FROM rooms
-    ORDER BY created_at DESC LIMIT 10`
+      `SELECT 
+      r.id,
+      r.player1_id,
+      u1.name AS player1_name,
+      u1.avatar AS player1_avatar,
+      r.player2_id,
+      u2.name AS player2_name,
+      u2.avatar AS player2_avatar,
+      r.win,
+      r.lose
+      FROM rooms r
+      LEFT JOIN 
+      users u1 ON r.player1_id = u1.id
+      LEFT JOIN 
+      users u2 ON r.player2_id = u2.id
+      ORDER BY r.created_at DESC LIMIT 10;`
     );
-
     return result;
   } catch (error) {
     throw new Error("Something went wrong");
