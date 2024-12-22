@@ -1,13 +1,18 @@
-const express = require('express');
-// const RoomController = require('../controllers/roomController');
-const RoomController = require('../controllers/rooms.controller');
-
+const express = require("express");
 const router = express.Router();
 
-// Route untuk membuat room baru
-router.post('/createroom', RoomController.createRoom);
+const roomController = require("../controllers/rooms.controller");
+const authenticateToken = require("../middlewares/auth.middleware");
 
-// Route untuk membuka room (update created_at)
-router.put('/open/:roomId', RoomController.openRoom);
+//post createRoom
+router.post("/create-room", authenticateToken, roomController.createRoom);
+//post joinRoom
+router.post("/join-room", authenticateToken, roomController.joinRoom);
+
+//get roomInfo
+router.post("/room-info", authenticateToken, roomController.roomInfo);
+
+//post finishGame
+//get gameInfo
 
 module.exports = router;

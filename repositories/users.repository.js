@@ -30,17 +30,17 @@ const findUserByEmail = async (email) => {
 };
 
 const createUser = async (user) => {
-  const { email, username, name, password, avatar, point } = user;
+  const { email, name, password, avatar } = user;
 
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
     const userResult = await client.query(
-      `INSERT INTO users (email, username, name, password, avatar) 
-       VALUES ($1, $2, $3, $4, $5) 
-       RETURNING id, email, username, name, avatar`,
-      [email, username, name, password, avatar]
+      `INSERT INTO users (email, name, password, avatar) 
+       VALUES ($1, $2, $3, $4) 
+       RETURNING id, email, name, avatar`,
+      [email, name, password, avatar]
     );
     const newUser = userResult.rows[0];
 
@@ -57,8 +57,34 @@ const createUser = async (user) => {
   }
 };
 
+const getRanks = (req, res) => {
+  pool.query(
+    `
+    with count_win as (
+      SELECT win, count(win) as count_win
+      FROM rooms
+      GROUP BY win
+    )
+
+    SELECT 
+      name, avatar, point, count_win
+    FROM users a
+    LEFT JOIN count_win b
+    on a.id = b.win
+    ORDER BY point DESC
+    LIMIT 10
+    `, 
+    (error, results) => {
+    if (error) {
+      throw error;
+    }
+    res.status(200).json(results.rows);
+  })
+};
+
 module.exports = {
   createUser,
   findUserById,
   findUserByEmail,
+  getRanks
 };

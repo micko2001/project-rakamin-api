@@ -1,28 +1,50 @@
-// const RoomService = require('../services/roomService');
-const RoomService = require('../services/rooms.service');
+const Joi = require("joi");
 
-const RoomController = {
-  async createRoom(req, res) {
-    try {
-      const { player1_id } = req.body; // Mendapatkan player1Id dari request body
-      const newRoom = await RoomService.createRoom(player1_id);
-      res.status(201).json({ message: 'Room created', room: newRoom });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Failed to create room', error: error.message });
-    }
-  },
+const roomService = require("../services/rooms.service");
 
-  async openRoom(req, res) {
-    try {
-      const { roomId } = req.params; // Mendapatkan roomId dari URL parameter
-      const status = await RoomService.openRoom(roomId);
-      res.status(200).json({ message: 'Room opened', success: status });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Failed to open room', error: error.message });
-    }
-  },
+const joinRoomSchema = Joi.object({
+  roomId: Joi.string().required(),
+});
+
+const createRoom = async (req, res, next) => {
+  try {
+    const homeId = req.user.id;
+
+    const roomData = await roomService.createRoom(homeId);
+    res.status(201).json({ data: roomData });
+  } catch (err) {
+    next(err);
+  }
 };
 
-module.exports = RoomController;
+const joinRoom = async (req, res, next) => {
+  try {
+    const { error, value } = joinRoomSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+    const { roomId } = value;
+    const awayId = req.user.id;
+    const joinRoom = await roomService.joinRoom(awayId, roomId);
+
+    res.status(200).json({ data: joinRoom });
+  } catch (err) {
+    next(err);
+  }
+};
+const roomInfo = async (req, res, next) => {
+  try {
+    const { error, value } = joinRoomSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+    const { roomId } = value;
+    const userId = req.user.id;
+    const roomInfo = await roomService.roomInfo(userId, roomId);
+    res.status(200).json({ data: roomInfo });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { createRoom, joinRoom, roomInfo };
