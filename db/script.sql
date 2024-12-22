@@ -1,7 +1,9 @@
+CREATE TYPE gamestat AS ENUM ('waiting', 'playing', 'finished', 'invalid');
+CREATE TYPE handpost AS ENUM ('rock', 'paper', 'scissors');
+
 CREATE TABLE users (
     email character varying(255) NOT NULL UNIQUE,
     id BIGSERIAL NOT NULL PRIMARY KEY,
-    username character varying(20) NOT NULL UNIQUE,
     name character varying(255) NOT NULL,
     password text NOT NULL,
     avatar text NOT NULL,
@@ -12,9 +14,9 @@ CREATE TABLE rooms (
     id BIGSERIAL NOT NULL PRIMARY KEY,
     player1_id BIGINT NOT NULL REFERENCES users(id),
     player2_id BIGINT REFERENCES users(id),
-    game_status ENUM('waiting', 'playing', 'finished') NOT NULL,
-    hand_position_p1 ENUM('rock', 'paper', 'scissors'),
-    hand_position_p2 ENUM('rock', 'paper', 'scissors'),
+    game_status gamestat,
+    hand_position_p1 handpost,
+    hand_position_p2 handpost,
     draw BOOLEAN DEFAULT false,
     win INT,
     lose INT,

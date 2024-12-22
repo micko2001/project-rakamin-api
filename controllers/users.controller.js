@@ -10,7 +10,7 @@ const {
 const registerSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(5).required(),
-  avatar: Joi.string().optional(),
+  avatar: Joi.string().required(),
   name: Joi.string().required(),
 });
 
@@ -73,16 +73,19 @@ const login = async (req, res, next) => {
 
 const getHistory = async (req, res, next) => {
   try {
-      const userId = req.user.id;
-      const history = await userService.getHistoryForUser(userId);
+    const id = req.user.id;
+    console.log(`User ID: ${id}`);
 
-      res.status(200).json({
-          success: true,
-          data: history,
-      });
+    const userHistory = await userService.getHistory(Number(id));
+    res.status(200).json({ data: userHistory });
   } catch (error) {
-      next(error);
+    if (error instanceof NotFoundError) {
+      return res.status(error.status).json({ error: error.message });
+    }
+    next(error);
   }
 };
+
+
 
 module.exports = { createUser, login, getUserById, getHistory };

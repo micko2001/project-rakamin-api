@@ -57,31 +57,35 @@ const createUser = async (user) => {
   }
 };
 
-const getHistory = async (user) => {
+const getHistory = async (id) => {
   try {
     const result = await pool.query(
       `SELECT 
-      r.id,
-      r.player1_id,
-      u1.name AS player1_name,
-      u1.avatar AS player1_avatar,
-      r.player2_id,
-      u2.name AS player2_name,
-      u2.avatar AS player2_avatar,
-      r.win,
-      r.lose
+        r.id,
+        r.player1_id,
+        u1.name AS player1_name,
+        u1.avatar AS player1_avatar,
+        r.player2_id,
+        u2.name AS player2_name,
+        u2.avatar AS player2_avatar,
+        r.win,
+        r.lose,
+        r.draw
       FROM rooms r
-      LEFT JOIN 
-      users u1 ON r.player1_id = u1.id
-      LEFT JOIN 
-      users u2 ON r.player2_id = u2.id
-      ORDER BY r.created_at DESC LIMIT 10;`
+      LEFT JOIN users u1 ON r.player1_id = u1.id
+      LEFT JOIN users u2 ON r.player2_id = u2.id
+      WHERE r.player1_id = $1 OR r.player2_id = $1 AND r.game_status = 'finished'
+      ORDER BY r.created_at DESC 
+      LIMIT 10;`,
+      [id]
     );
-    return result;
+    return result.rows
   } catch (error) {
-    throw new Error("Something went wrong");
+    console.error(error)
+    throw new Error("Something went wrong while fetching history.");
   }
 };
+
 
 module.exports = {
   createUser,

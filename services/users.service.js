@@ -56,8 +56,15 @@ const getUserById = async (id) => {
   };
 };
 
-const getHistoryForUser = async (userId) => {
-  return await userRepository.getHistory(userId);
-};
+const getHistory = async (id) => {
+  const user = await userRepository.getHistory(id);
 
-module.exports = { createUser, login, getUserById, getHistoryForUser };
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
+
+  return {
+    ...user,
+  };
+};
+module.exports = { createUser, login, getUserById, getHistory };
