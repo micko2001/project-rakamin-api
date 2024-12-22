@@ -48,7 +48,10 @@ const invalidRoom = async (roomId) => {
   try {
     await client.query("BEGIN");
     const data = await client.query(
-      `UPDATE rooms SET game_status = 'invalid' WHERE id =$1`,
+      `UPDATE rooms SET
+       game_status = 'invalid',
+       initialize_at = NOW()
+       WHERE id =$1`,
       [roomId]
     );
     await client.query("COMMIT");
@@ -78,4 +81,26 @@ const findRoomById = async (playerId, roomId) => {
   }
 };
 
-module.exports = { createRoom, findRoomById, joinRoom, invalidRoom };
+const findRoomId = async (playerId, roomId) => {
+  try {
+    const roomIsFound = await pool.query(
+      `SELECT id, player1_id, player2_id, game_status,
+       created_at, initialize_at FROM rooms 
+       WHERE rooms.id = $1 AND (player1_id = $2 OR player2_id = $2)
+      `,
+      [roomId, playerId]
+    );
+    return roomIsFound.rows[0];
+  } catch (err) {
+    console.log(err);
+    throw new Error("Something went wrong");
+  }
+};
+
+module.exports = {
+  createRoom,
+  findRoomById,
+  joinRoom,
+  invalidRoom,
+  findRoomId,
+};

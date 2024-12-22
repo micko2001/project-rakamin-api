@@ -10,6 +10,7 @@ router.post("/create-room", authenticateToken, roomController.createRoom);
 router.post("/join-room", authenticateToken, roomController.joinRoom);
 
 //get roomInfo
+router.post("/room-info", authenticateToken, roomController.roomInfo);
 
 //post finishGame
 //get gameInfo

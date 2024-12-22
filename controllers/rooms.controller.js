@@ -1,10 +1,10 @@
 const Joi = require("joi");
 
+const roomService = require("../services/rooms.service");
+
 const joinRoomSchema = Joi.object({
   roomId: Joi.string().required(),
 });
-
-const roomService = require("../services/rooms.service");
 
 const createRoom = async (req, res, next) => {
   try {
@@ -32,5 +32,19 @@ const joinRoom = async (req, res, next) => {
     next(err);
   }
 };
+const roomInfo = async (req, res, next) => {
+  try {
+    const { error, value } = joinRoomSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+    const { roomId } = value;
+    const userId = req.user.id;
+    const roomInfo = await roomService.roomInfo(userId, roomId);
+    res.status(200).json({ data: roomInfo });
+  } catch (err) {
+    next(err);
+  }
+};
 
-module.exports = { createRoom, joinRoom };
+module.exports = { createRoom, joinRoom, roomInfo };

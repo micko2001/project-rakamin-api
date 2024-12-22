@@ -10,13 +10,14 @@ const joinRoom = async (userId, roomId) => {
   const roomExist = await roomRepository.findRoomById(userId, roomId);
 
   if (!roomExist) {
-    throw new NotFoundError("Room not found");
+    throw new NotFoundError("Room is not found");
   }
 
   const createdAt = new Date(roomExist.created_at);
   const now = new Date();
   const diffMinutes = (now - createdAt) / (1000 * 60);
 
+  //buffer, FE only need 3 minutes. but dev U can increase it
   if (diffMinutes > 5) {
     //update game_status to invalid
     const result = await roomRepository.invalidRoom(roomId);
@@ -28,4 +29,20 @@ const joinRoom = async (userId, roomId) => {
   return gameStart;
 };
 
-module.exports = { createRoom, joinRoom };
+const roomInfo = async (userId, roomId) => {
+  const roomExist = await roomRepository.findRoomId(userId, roomId);
+
+  console.log(roomExist);
+  if (!roomExist) {
+    throw new NotFoundError("Room is not found");
+  }
+  // invalid condition
+
+  //playing condition
+
+  //finished
+
+  return roomExist;
+};
+
+module.exports = { createRoom, joinRoom, roomInfo };
