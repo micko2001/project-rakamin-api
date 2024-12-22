@@ -28,6 +28,19 @@ const findUserByEmail = async (email) => {
     throw new Error("Something went wrong");
   }
 };
+const findUserByUsername = async (username) => {
+  try {
+    const result = await pool.query(
+      `SELECT *
+       FROM users
+       WHERE users.username = $1`,
+      [username]
+    );
+    return result.rows[0];
+  } catch (error) {
+    throw new Error("Something went wrong");
+  }
+};
 
 const createUser = async (user) => {
   const { email, username, name, password, avatar, point } = user;
@@ -51,7 +64,7 @@ const createUser = async (user) => {
     };
   } catch (error) {
     await client.query("ROLLBACK");
-    throw new Error("Database error occurred while creating the user.");
+    throw new Error("error in database");
   } finally {
     client.release();
   }
@@ -61,4 +74,5 @@ module.exports = {
   createUser,
   findUserById,
   findUserByEmail,
+  findUserByUsername,
 };

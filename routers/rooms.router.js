@@ -6,8 +6,11 @@ const authenticateToken = require("../middlewares/auth.middleware");
 
 //post createRoom
 router.post("/create-room", authenticateToken, roomController.createRoom);
-//get roomInfo
 //post joinRoom
+router.post("/join-room", authenticateToken, roomController.joinRoom);
+
+//get roomInfo
+
 //post finishGame
 //get gameInfo
 
