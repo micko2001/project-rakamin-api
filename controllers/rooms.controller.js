@@ -8,7 +8,9 @@ const joinRoomSchema = Joi.object({
 
 const gameFinishedSchema = Joi.object({
   roomId: Joi.string().required(),
-  handPosition: Joi.string().optional(),
+  handPosition: Joi.string()
+    .valid("rock", "paper", "scissors", "unsubmit")
+    .required(),
 });
 
 const createRoom = async (req, res, next) => {

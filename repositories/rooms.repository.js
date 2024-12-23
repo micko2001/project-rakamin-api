@@ -1,5 +1,7 @@
 const pool = require("../db/db");
 
+const { DatabaseError } = require("../dto/customErrors");
+
 const createRoom = async (userId, game_status) => {
   const client = await pool.connect();
 
@@ -18,7 +20,7 @@ const createRoom = async (userId, game_status) => {
     return newRoom;
   } catch (err) {
     //console.log(err);
-    throw new Error("Something wrong happened");
+    throw new DatabaseError("Something wrong happened");
   }
 };
 
@@ -39,7 +41,7 @@ const joinRoom = async (roomId, awayId, gameStatus) => {
     return gameStatus;
   } catch (error) {
     //console.log(err);
-    throw new Error("Something wrong happened");
+    throw new DatabaseError("Something wrong happened");
   }
 };
 
@@ -58,7 +60,7 @@ const invalidRoom = async (roomId) => {
 
     return "Room is expired";
   } catch (err) {
-    throw new Error("something wrong happened");
+    throw new DatabaseError("something wrong happened");
   }
 };
 
@@ -77,15 +79,14 @@ const findRoomById = async (playerId, roomId) => {
 
     return result.rows[0];
   } catch (error) {
-    throw new Error("Something went wrong");
+    throw new DatabaseError("Something went wrong");
   }
 };
 
 const findRoomId = async (playerId, roomId) => {
   try {
     const roomIsFound = await pool.query(
-      `SELECT id, player1_id, player2_id, game_status, hand_position_p1, hand_position_p2,
-       created_at, initialize_at FROM rooms 
+      `SELECT * FROM rooms 
        WHERE rooms.id = $1 AND (player1_id = $2 OR player2_id = $2)
       `,
       [roomId, playerId]
@@ -93,7 +94,7 @@ const findRoomId = async (playerId, roomId) => {
     return roomIsFound.rows[0];
   } catch (err) {
     console.log(err);
-    throw new Error("Something went wrong");
+    throw new DatabaseError("Something went wrong");
   }
 };
 
@@ -101,10 +102,12 @@ const submitHand = async (handPosition, position, roomId) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
+
+    console.log(roomId, handPosition, position);
     if (position == 1) {
       await client.query(
         `UPDATE rooms SET
-          hand_position_p1 = $1,
+          hand_position_p1 = $1
           WHERE id =$2`,
         [handPosition, roomId]
       );
@@ -116,7 +119,7 @@ const submitHand = async (handPosition, position, roomId) => {
     } else if (position == 2) {
       await client.query(
         `UPDATE rooms SET
-          hand_position_p2 = $1,
+          hand_position_p2 = $1
           WHERE id =$2`,
         [handPosition, roomId]
       );
@@ -126,10 +129,58 @@ const submitHand = async (handPosition, position, roomId) => {
         position: position,
       };
     } else {
-      throw new Error("User position is unknown");
+      throw new DatabaseError("User position is unknown");
     }
   } catch (err) {
-    throw new Error("something went wrong");
+    throw new DatabaseError("something went wrong");
+  }
+};
+
+const setWinner = async (roomId, result) => {
+  try {
+    pool.query(
+      `UPDATE rooms SET
+      win = $1,
+      lose = $2,
+      finish_at = NOW(),
+      game_status = 'finished'
+      WHERE id = $3
+      `,
+      [result.winner, result.loser, roomId]
+    );
+    // Update points for the winner
+    await pool.query(
+      `UPDATE users
+      SET point = point + 10
+      WHERE id = $1`,
+      [result.winner]
+    );
+
+    // Update points for the loser, ensuring points don't go negative
+    await pool.query(
+      `UPDATE users
+      SET point = GREATEST(point - 5, 0)
+      WHERE id = $1`,
+      [result.loser]
+    );
+    return { win: result.winner, lose: result.loser, game_status: "finished" };
+  } catch (err) {
+    throw new DatabaseError("something wrong happened");
+  }
+};
+const setDraw = async (roomId, result) => {
+  try {
+    pool.query(
+      `UPDATE rooms SET 
+      draw = $2,
+      finish_at = NOW(),
+      game_status = 'finished'
+      WHERE id =$1`,
+      [roomId, result]
+    );
+    return { result: "draw" };
+  } catch (err) {
+    throw new DatabaseError("Something wrong happened");
   }
 };
 
@@ -140,4 +191,6 @@ module.exports = {
   invalidRoom,
   findRoomId,
   submitHand,
+  setDraw,
+  setWinner,
 };

@@ -70,9 +70,65 @@ const createUser = async (user) => {
   }
 };
 
+const getTopUsers = async () => {
+  return pool.query(
+    ` with count_win as
+     ( SELECT win, count(win) 
+      as count_win FROM rooms 
+      GROUP BY win ) SELECT name,
+       avatar, point, count_win 
+       FROM users a LEFT JOIN 
+       count_win b on a.id = b.win 
+       ORDER BY point DESC LIMIT 10 `
+  );
+};
+
+const getHistory = async (userId) => {
+  const query = `
+      SELECT 
+          r.id AS game_id,
+          r.finish_at AS match_date,
+          CASE
+              WHEN r.player1_id = $1 THEN u2.name
+              WHEN r.player2_id = $1 THEN u1.name
+          END AS opponent_name,
+          CASE
+              WHEN r.draw = TRUE THEN 'draw'
+              WHEN r.win = $1 THEN 'win'
+              WHEN r.lose = $1 THEN 'lose'
+          END AS result,
+          CASE
+              WHEN r.draw = TRUE THEN 0
+              WHEN r.win = $1 THEN 10
+              WHEN r.lose = $1 THEN GREATEST(0, -5)
+          END AS point
+      FROM 
+          rooms r
+      JOIN 
+          users u1 ON r.player1_id = u1.id
+      JOIN 
+          users u2 ON r.player2_id = u2.id
+      WHERE 
+          (r.player1_id = $1 OR r.player2_id = $1)
+          AND r.game_status = 'finished'
+      ORDER BY 
+          r.finish_at DESC;
+  `;
+  const values = [userId];
+  try {
+    const result = await pool.query(query, values);
+    return result.rows;
+  } catch (error) {
+    console.error("Error fetching game history:", error);
+    throw new Error("Could not fetch game history");
+  }
+};
+
 module.exports = {
   createUser,
   findUserById,
   findUserByEmail,
   findUserByUsername,
+  getTopUsers,
+  getHistory,
 };

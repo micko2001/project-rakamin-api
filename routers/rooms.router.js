@@ -5,15 +5,15 @@ const roomController = require("../controllers/rooms.controller");
 const authenticateToken = require("../middlewares/auth.middleware");
 
 //post createRoom
-router.post("/create-room", authenticateToken, roomController.createRoom);
+router.post("/rooms", authenticateToken, roomController.createRoom);
 //post joinRoom
-router.post("/join-room", authenticateToken, roomController.joinRoom);
+router.post("/rooms/join", authenticateToken, roomController.joinRoom);
 
 //get roomInfo
-router.post("/room-info", authenticateToken, roomController.roomInfo);
+router.post("/rooms/info", authenticateToken, roomController.roomInfo);
 
 //post finishGame
-router.post("/game-finished", authenticateToken, roomController.gameFinished);
+router.post("/game/finish", authenticateToken, roomController.gameFinished);
 //get gameInfo
 
 module.exports = router;
