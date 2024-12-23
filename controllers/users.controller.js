@@ -19,6 +19,7 @@ const loginSchema = Joi.object({
   password: Joi.string().min(8).required(),
 });
 
+
 const getUserById = async (req, res, next) => {
   try {
     const { id } = req.user;

@@ -67,4 +67,6 @@ const getHistory = async (id) => {
     ...user,
   };
 };
+
+
 module.exports = { createUser, login, getUserById, getHistory };

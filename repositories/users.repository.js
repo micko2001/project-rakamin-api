@@ -79,17 +79,35 @@ const getHistory = async (id) => {
       LIMIT 10;`,
       [id]
     );
-    return result.rows
+    return result.rows;
   } catch (error) {
-    console.error(error)
+    console.error(error);
     throw new Error("Something went wrong while fetching history.");
   }
 };
 
+const playAgain = async (rooms) => {
+    try {
+      const query = await pool.query(
+        `INSERT INTO rooms (
+            player1_id,
+            game_status) 
+        VALUES ($1, 'waiting')
+        RETURNING id, player1_id, game_status, created_at;`,
+        [rooms]
+      );
+      const result = await pool.query(query, [rooms]);
+      return result.rows[0];
+    } catch (error) {
+      console.error(error);
+      throw new Error("Something went wrong.");
+    }
+};
 
 module.exports = {
   createUser,
   findUserById,
   findUserByEmail,
   getHistory,
+  playAgain
 };
