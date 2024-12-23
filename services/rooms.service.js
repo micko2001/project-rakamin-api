@@ -38,10 +38,19 @@ const roomInfo = async (userId, roomId) => {
   }
   // invalid condition
 
+  const createdAt = new Date(roomExist.created_at);
+  const currentTime = new Date();
+  const expRoom = 5*60
+  if (((currentTime - createdAt)/1000) > expRoom) {
+    const result = await roomRepository.invalidRoom(roomId);
+    return result;
+  }
+
   //playing condition
+  
 
   //finished
-
+  
   return roomExist;
 };
 
