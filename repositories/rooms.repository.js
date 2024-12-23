@@ -47,7 +47,7 @@ const invalidRoom = async (roomId) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    const data = await client.query(
+    await client.query(
       `UPDATE rooms SET
        game_status = 'invalid',
        initialize_at = NOW()
@@ -84,7 +84,7 @@ const findRoomById = async (playerId, roomId) => {
 const findRoomId = async (playerId, roomId) => {
   try {
     const roomIsFound = await pool.query(
-      `SELECT id, player1_id, player2_id, game_status,
+      `SELECT id, player1_id, player2_id, game_status, hand_position_p1, hand_position_p2,
        created_at, initialize_at FROM rooms 
        WHERE rooms.id = $1 AND (player1_id = $2 OR player2_id = $2)
       `,
@@ -97,10 +97,47 @@ const findRoomId = async (playerId, roomId) => {
   }
 };
 
+const submitHand = async (handPosition, position, roomId) => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    if (position == 1) {
+      await client.query(
+        `UPDATE rooms SET
+          hand_position_p1 = $1,
+          WHERE id =$2`,
+        [handPosition, roomId]
+      );
+      await client.query("COMMIT");
+      return {
+        handPosition: "isSubmitted",
+        position: position,
+      };
+    } else if (position == 2) {
+      await client.query(
+        `UPDATE rooms SET
+          hand_position_p2 = $1,
+          WHERE id =$2`,
+        [handPosition, roomId]
+      );
+      await client.query("COMMIT");
+      return {
+        handPosition: "isSubmitted",
+        position: position,
+      };
+    } else {
+      throw new Error("User position is unknown");
+    }
+  } catch (err) {
+    throw new Error("something went wrong");
+  }
+};
+
 module.exports = {
   createRoom,
   findRoomById,
   joinRoom,
   invalidRoom,
   findRoomId,
+  submitHand,
 };

@@ -13,6 +13,7 @@ router.post("/join-room", authenticateToken, roomController.joinRoom);
 router.post("/room-info", authenticateToken, roomController.roomInfo);
 
 //post finishGame
+router.post("/game-finished", authenticateToken, roomController.gameFinished);
 //get gameInfo
 
 module.exports = router;
