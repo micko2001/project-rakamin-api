@@ -188,7 +188,8 @@ const setWinLose = async (roomId, winner, loser) => {
       `UPDATE users 
       SET point = CASE
         WHEN point < 5 AND id = $1 THEN 0
-        WHEN point >= 5 AND id = $1 THEN point - 5 END`,
+        WHEN point >= 5 AND id = $1 THEN point - 5 END
+        WHERE id = $1`,
       [loser]
     );
     return {win: winner, lose: loser, game_status: "finished"}
