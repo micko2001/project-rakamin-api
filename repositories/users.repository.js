@@ -66,7 +66,7 @@ const createUser = async (user) => {
     };
   } catch (error) {
     await client.query("ROLLBACK");
-    throw new Error("error in database");
+    throw new Error("Database error occurred while creating the user.");
   } finally {
     client.release();
   }
