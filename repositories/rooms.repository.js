@@ -118,11 +118,93 @@ const findGameId = async (playerId, roomId) => {
   }
 };
 
+const submitHand = async (handPosition, position, roomId) => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    if (position == 1) {
+      await client.query(
+        `UPDATE rooms SET
+          hand_position_p1 = $1,
+          WHERE id =$2`,
+        [handPosition, roomId]
+      );
+      await client.query("COMMIT");
+      return {
+        handPosition: "isSubmitted",
+        position: position,
+      };
+    } else if (position == 2) {
+      await client.query(
+        `UPDATE rooms SET
+          hand_position_p2 = $1,
+          WHERE id =$2`,
+        [handPosition, roomId]
+      );
+      await client.query("COMMIT");
+      return {
+        handPosition: "isSubmitted",
+        position: position,
+      };
+    } else {
+      throw new Error("User position is unknown");
+    }
+  } catch (err) {
+    throw new Error("something went wrong");
+  }
+};
+
+// const setWinLose = async (roomId) => {
+//   const client = await pool.connect();
+//   try {
+//     const result = await.client.query(
+//       `SELECT win, lose FROM rooms WHERE id = $1`,
+//       [roomId]
+//     );
+
+//     return result.rows[0];
+//   }
+// }
+
+const setWinLose = async (roomId, winner, loser) => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query(
+      `UPDATE rooms SET
+      game_status = "finished",
+      finish_at = now(),
+      win = $1,
+      lose = $2
+      WHERE id = $3`,
+      [roomId, winner, loser]
+
+    );
+    await client.query(
+      `UPDATE users SET point = point + 10 WHERE id = $1`,
+      [winner]
+    );
+    await client.query(
+      `UPDATE users 
+      SET point = CASE
+        WHEN point < 5 AND id = $1 THEN 0
+        WHEN point >= 5 AND id = $1 THEN point - 5 END`,
+      [loser]
+    );
+    return {win: winner, lose: loser, game_status: "finished"}
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw new Error("Failed to update points")
+  }
+};
+
 module.exports = {
   createRoom,
   findRoomById,
   joinRoom,
   invalidRoom,
   findRoomId,
-  findGameId
+  findGameId,
+  submitHand,
+  setWinLose,
 };

@@ -16,6 +16,6 @@ router.post("/room-info", authenticateToken, roomController.roomInfo);
 router.post("/game-info", authenticateToken, roomController.gameInfo);
 
 //post finishGame
-//get gameInfo
+router.post("/game-finished", authenticateToken, roomController.gameFinished);
 
 module.exports = router;
