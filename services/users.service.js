@@ -9,7 +9,12 @@ const {
 
 const createUser = async (userData) => {
   const existingUser = await userRepository.findUserByEmail(userData.email);
-  if (existingUser) {
+
+  const existingUsername = await userRepository.findUserByUsername(
+    userData.username
+  );
+
+  if (existingUser || existingUsername) {
     throw new UserAlreadyExistsError();
   }
 
@@ -56,4 +61,31 @@ const getUserById = async (id) => {
   };
 };
 
-module.exports = { createUser, login, getUserById };
+const getLeaderboards = async () => {
+  try {
+    const result = await userRepository.getTopUsers();
+    return result.rows;
+  } catch (error) {
+    throw new NotFoundError("Error fetching ranks");
+  }
+};
+
+const getHistory = async (id) => {
+  const user = await userRepository.getHistory(id);
+
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
+
+  return {
+    ...user,
+  };
+};
+
+module.exports = {
+  createUser,
+  login,
+  getUserById,
+  getLeaderboards,
+  getHistory,
+};

@@ -30,9 +30,18 @@ class ValidationError extends Error {
   }
 }
 
+class DatabaseError extends Error {
+  constructor(message = "server has a problem") {
+    super(message);
+    this.name = "DatabaseError";
+    this.status = 500;
+  }
+}
+
 module.exports = {
   UserAlreadyExistsError,
   AuthenticationError,
   NotFoundError,
   ValidationError,
+  DatabaseError,
 };

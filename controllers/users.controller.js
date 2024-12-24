@@ -71,4 +71,24 @@ const login = async (req, res, next) => {
   }
 };
 
-module.exports = { createUser, login, getUserById };
+const leaderboards = async (req, res) => {
+  try {
+    const ranks = await userService.getLeaderboards();
+    res.status(200).json(ranks);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+const getHistory = async (req, res, next) => {
+  try {
+    const id = req.user.id;
+    const userHistory = await userService.getHistory(Number(id));
+    res.status(200).json({ data: userHistory });
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      return res.status(error.status).json({ error: error.message });
+    }
+    next(error);
+  }
+};
+module.exports = { createUser, login, getUserById, leaderboards, getHistory };
