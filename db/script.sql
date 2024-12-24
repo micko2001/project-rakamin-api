@@ -1,7 +1,6 @@
 CREATE TABLE users (
     email character varying(255) NOT NULL UNIQUE,
     id BIGSERIAL NOT NULL PRIMARY KEY,
-    username character varying(20) NOT NULL UNIQUE,
     name character varying(255) NOT NULL,
     password text NOT NULL,
     avatar text NOT NULL,

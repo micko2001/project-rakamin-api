@@ -43,7 +43,9 @@ const findUserByUsername = async (username) => {
 };
 
 const createUser = async (user) => {
+  
   const { email, name, password, avatar } = user;
+
 
   const client = await pool.connect();
 
