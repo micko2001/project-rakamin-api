@@ -33,23 +33,18 @@ const joinRoom = async (req, res, next) => {
 
 const joinRoomForPlayAgain = async (req, res, next) => {
     try {
-      console.log("Request Body:", req.body); // Debug isi body
-  
-      const { error, roomId } = joinRoomSchema.validate(req.body);
+      console.log("Request Body:", req.body);
+      const { error, value } = joinRoomSchema.validate(req.body);
       if (error) {
         return res.status(400).json({ error: error.message });
       }
-  
-      console.log("roomId from Request Body:", roomId); // Debug roomId
-  
-      const awayId = req.user.id; // Ambil ID user dari token
-      console.log("User ID (awayId):", awayId); // Debug user ID
-  
+      const roomId = value.roomId
+      const awayId = req.user.id
+      console.log("User ID (awayId):", awayId);
       const joinRoom = await roomService.joinRoom(awayId, roomId);
-  
       res.status(200).json({ data: joinRoom });
     } catch (err) {
-      console.error(err); // Log error untuk debugging
+      console.error(err);
       next(err);
     }
   };
