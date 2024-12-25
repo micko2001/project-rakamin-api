@@ -4,7 +4,7 @@ class UserResponse {
     this.name = user.name;
     this.email = user.email;
     this.avatar = user.avatar;
-    
+    this.point = user.point;
   }
 }
 
