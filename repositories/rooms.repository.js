@@ -38,7 +38,7 @@ const joinRoom = async (roomId, awayId, gameStatus) => {
       [awayId, gameStatus, roomId]
     );
     await client.query("COMMIT");
-    return gameStatus;
+    return { roomId: roomId, gameStatus: gameStatus };
   } catch (error) {
     //console.log(err);
     throw new DatabaseError("Something wrong happened");
