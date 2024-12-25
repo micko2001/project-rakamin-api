@@ -38,7 +38,7 @@ const joinRoom = async (roomId, awayId, gameStatus) => {
       [awayId, gameStatus, roomId]
     );
     await client.query("COMMIT");
-    return gameStatus;
+    return { roomId: roomId, gameStatus: gameStatus };
   } catch (error) {
     //console.log(err);
     throw new DatabaseError("Something wrong happened");
@@ -184,6 +184,21 @@ const setDraw = async (roomId, result) => {
   }
 };
 
+const gameAgain = async (playerId) => {
+  try {
+    const roomIsFound = await pool.query(
+      `SELECT * FROM rooms 
+       WHERE game_status='again' AND (player1_id = $1 OR player2_id = $1)
+      `,
+      [playerId]
+    );
+    return roomIsFound.rows[0];
+  } catch (err) {
+    console.log(err);
+    throw new DatabaseError("Something went wrong");
+  }
+};
+
 module.exports = {
   createRoom,
   findRoomById,
@@ -193,4 +208,5 @@ module.exports = {
   submitHand,
   setDraw,
   setWinner,
+  gameAgain,
 };

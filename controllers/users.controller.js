@@ -10,7 +10,7 @@ const {
 const registerSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(5).required(),
-  avatar: Joi.string().optional(),
+  avatar: Joi.string().required(),
   name: Joi.string().required(),
 });
 

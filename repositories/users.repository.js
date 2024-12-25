@@ -43,9 +43,7 @@ const findUserByUsername = async (username) => {
 };
 
 const createUser = async (user) => {
-  
   const { email, name, password, avatar } = user;
-
 
   const client = await pool.connect();
 
@@ -53,6 +51,14 @@ const createUser = async (user) => {
     await client.query("BEGIN");
     const userResult = await client.query(
       `INSERT INTO users (email, name, password, avatar) 
+       VALUES ($1, $2, $3, $4) 
+       RETURNING id, email, name, avatar`,
+      [
+        email,
+        name,
+        password,
+        avatar,
+      ]`INSERT INTO users (email, name, password, avatar) 
        VALUES ($1, $2, $3, $4) 
        RETURNING id, email, name, avatar`,
       [email, name, password, avatar]
@@ -115,6 +121,24 @@ const getHistory = async (userId) => {
   }
 };
 
+const playAgain = async (rooms) => {
+  try {
+    const query = await pool.query(
+      `INSERT INTO rooms (
+          player1_id,
+          game_status) 
+      VALUES ($1, 'waiting')
+      RETURNING id, player1_id, game_status, created_at;`,
+      [rooms]
+    );
+    const result = await pool.query(query, [rooms]);
+    return result.rows[0];
+  } catch (error) {
+    console.error(error);
+    throw new Error("Something went wrong.");
+  }
+};
+
 module.exports = {
   createUser,
   findUserById,
@@ -122,4 +146,5 @@ module.exports = {
   findUserByUsername,
   getTopUsers,
   getHistory,
+  playAgain,
 };

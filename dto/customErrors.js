@@ -7,7 +7,7 @@ class UserAlreadyExistsError extends Error {
 }
 
 class AuthenticationError extends Error {
-  constructor(message = "Invalid credentials") {
+  constructor(message = "Your Password or Email is wrong") {
     super(message);
     this.name = "AuthenticationError";
     this.status = 401;
