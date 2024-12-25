@@ -27,4 +27,6 @@ router.post(
   roomController.joinRoomForPlayAgain
 );
 
+router.post("/play/again", authenticateToken, roomController.playAgain);
+
 module.exports = router;

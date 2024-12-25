@@ -21,6 +21,9 @@ const joinRoom = async (userId, roomId) => {
   if (roomExist.player2_id) {
     throw new ValidationError("Room is full");
   }
+  if (roomExist.player1_id == userId) {
+    throw new ValidationError("You try to join in your created room");
+  }
 
   const createdAt = new Date(roomExist.created_at);
   const now = new Date();
@@ -41,7 +44,6 @@ const joinRoom = async (userId, roomId) => {
 const roomInfo = async (userId, roomId) => {
   const roomExist = await roomRepository.findRoomId(userId, roomId);
 
-  console.log(roomExist);
   if (!roomExist) {
     throw new NotFoundError("Room is not found");
   }
@@ -50,8 +52,6 @@ const roomInfo = async (userId, roomId) => {
 };
 
 const playersHand = ({ player1_id, player2_id }, userId) => {
-  console.log(player1_id, player2_id);
-  console.log(userId);
   if (player1_id === userId) {
     return { userId: userId, position: 1 };
   } else if (player2_id === userId) {
@@ -107,8 +107,6 @@ const gameFinished = async (roomId, userId, handPosition) => {
 
   const whoseHand = await roomRepository.findRoomId(userId, roomId);
   const playersData = playersHand(whoseHand, userId);
-  console.log(whoseHand);
-  console.log(playersData);
 
   //update row based on player's hand position
 
@@ -148,13 +146,45 @@ const gameFinished = async (roomId, userId, handPosition) => {
 
     // Tentukan pemenang dan log hasil
     const result = determineWinner(player1Hand, player2Hand);
-    console.log(result, `way${dataSent.position}`);
 
     // Proses hasil pertandingan
     return await handlerWinner(result, roomId, whoseHand);
   }
 
-  console.log(dataSent);
   return dataSent;
 };
-module.exports = { createRoom, joinRoom, roomInfo, gameFinished };
+
+const playAgain = async (userId, roomId) => {
+  const playersData = await roomRepository.findRoomId(userId, roomId);
+
+  const enemiesId =
+    playersData.player1_id == userId
+      ? playersData.player2_id
+      : playersData.player1_id;
+
+  const catchAgainGame = await roomRepository.gameAgain(enemiesId);
+  if (catchAgainGame) {
+    const newRoomId = catchAgainGame.id;
+    const createdAt = new Date(catchAgainGame.created_at);
+    const now = new Date();
+    const diffMinutes = (now - createdAt) / (1000 * 60);
+
+    //buffer, FE only need 3 minutes. but dev U can increase it
+    if (diffMinutes > 5) {
+      //update game_status to invalid
+      const result = await roomRepository.invalidRoom(newRoomId);
+      return result;
+    }
+
+    const joinRoom = await roomRepository.joinRoom(
+      newRoomId,
+      userId,
+      "playing"
+    );
+    return joinRoom;
+  } else {
+    return await roomRepository.createRoom(userId, "again");
+  }
+};
+
+module.exports = { createRoom, joinRoom, roomInfo, gameFinished, playAgain };
