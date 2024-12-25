@@ -1,6 +1,7 @@
 const Pool = require("pg").Pool;
 
 //setup for local
+
 // const pool = new Pool({
 //   user: "postgres",
 //   host: "localhost",
@@ -10,6 +11,7 @@ const Pool = require("pg").Pool;
 // });
 
 //setup for vercel
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
