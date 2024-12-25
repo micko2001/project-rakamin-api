@@ -10,7 +10,7 @@ const {
 const createUser = async (userData) => {
   const existingUser = await userRepository.findUserByEmail(userData.email);
 
-    if (existingUser) {
+  if (existingUser) {
     throw new UserAlreadyExistsError();
   }
 

@@ -15,4 +15,16 @@ router.post("/rooms/info", authenticateToken, roomController.roomInfo);
 //post finishGame
 router.post("/game/finish", authenticateToken, roomController.gameFinished);
 
+router.post(
+  "/player1-play-again",
+  authenticateToken,
+  roomController.createRoom
+);
+
+router.post(
+  "/player2-join-room",
+  authenticateToken,
+  roomController.joinRoomForPlayAgain
+);
+
 module.exports = router;

@@ -71,5 +71,28 @@ const gameFinished = async (req, res, next) => {
     next(err);
   }
 };
+const joinRoomForPlayAgain = async (req, res, next) => {
+  try {
+    console.log("Request Body:", req.body);
+    const { error, value } = joinRoomSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+    const roomId = value.roomId;
+    const awayId = req.user.id;
+    console.log("User ID (awayId):", awayId);
+    const joinRoom = await roomService.joinRoom(awayId, roomId);
+    res.status(200).json({ data: joinRoom });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+};
 
-module.exports = { createRoom, joinRoom, roomInfo, gameFinished };
+module.exports = {
+  createRoom,
+  joinRoom,
+  roomInfo,
+  gameFinished,
+  joinRoomForPlayAgain,
+};
