@@ -25,6 +25,7 @@ const findUserByEmail = async (email) => {
     );
     return result.rows[0];
   } catch (error) {
+    console.log(error)
     throw new Error("Something went wrong");
   }
 };
@@ -100,11 +101,12 @@ const getHistory = async (userId) => {
         u2.avatar AS player2_avatar,
         r.win,
         r.lose,
-        r.draw
+        r.draw,
+        r.game_status
       FROM rooms r
       LEFT JOIN users u1 ON r.player1_id = u1.id
       LEFT JOIN users u2 ON r.player2_id = u2.id
-      WHERE r.player1_id = $1 OR r.player2_id = $1 AND r.game_status = 'finished'
+      WHERE (r.player1_id = $1 OR r.player2_id = $1) AND r.game_status = 'finished'
       ORDER BY r.created_at DESC 
       LIMIT 10;
   `;
