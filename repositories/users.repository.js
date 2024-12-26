@@ -53,7 +53,12 @@ const createUser = async (user) => {
       `INSERT INTO users (email, name, password, avatar) 
        VALUES ($1, $2, $3, $4) 
        RETURNING id, email, name, avatar`,
-      [email, name, password, avatar]
+      [
+        email,
+        name,
+        password,
+        avatar,
+      ]
     );
     const newUser = userResult.rows[0];
 
