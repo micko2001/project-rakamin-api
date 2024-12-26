@@ -3,7 +3,7 @@ const pool = require("../db/db");
 const findUserById = async (id) => {
   try {
     const result = await pool.query(
-      `SELECT *
+      `SELECT email, id, name, point, avatar
        FROM users
        WHERE users.id = $1`,
       [id]
