@@ -8,9 +8,9 @@ function authenticateToken(req, res, next) {
     return res.status(401).json({ error: "unauthenticated" });
   }
 
-  // const TOKEN_SECRET = 'secret'
+  const TOKEN_SECRET = 'secret'
 
-  jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
+  jwt.verify(token, TOKEN_SECRET, (err, user) => {
     if (err) {
       if (err.name === "TokenExpiredError") {
         return res.status(403).json({ error: "Token expired" });
