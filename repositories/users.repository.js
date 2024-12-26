@@ -3,7 +3,7 @@ const pool = require("../db/db");
 const findUserById = async (id) => {
   try {
     const result = await pool.query(
-      `SELECT *
+      `SELECT email, id, name, point, avatar
        FROM users
        WHERE users.id = $1`,
       [id]
@@ -51,14 +51,6 @@ const createUser = async (user) => {
     await client.query("BEGIN");
     const userResult = await client.query(
       `INSERT INTO users (email, name, password, avatar) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING id, email, name, avatar`,
-      [
-        email,
-        name,
-        password,
-        avatar,
-      ]`INSERT INTO users (email, name, password, avatar) 
        VALUES ($1, $2, $3, $4) 
        RETURNING id, email, name, avatar`,
       [email, name, password, avatar]

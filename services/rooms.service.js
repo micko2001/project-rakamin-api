@@ -1,5 +1,6 @@
 //validation time in here
 const roomRepository = require("../repositories/rooms.repository");
+const userRepository = require("../repositories/users.repository");
 const {
   UserAlreadyExistsError,
   AuthenticationError,
@@ -9,7 +10,8 @@ const {
 
 const createRoom = async (userId) => {
   const roomData = await roomRepository.createRoom(userId, "waiting");
-  return roomData;
+  const userData = await userRepository.findUserById(userId);
+  return { ...roomData, p1: userData };
 };
 
 const joinRoom = async (userId, roomId) => {
@@ -37,8 +39,9 @@ const joinRoom = async (userId, roomId) => {
   }
   //update join
   const gameStart = await roomRepository.joinRoom(roomId, userId, "playing");
-
-  return gameStart;
+  const p1 = await userRepository.findUserById(roomExist.player1_id);
+  const p2 = await userRepository.findUserById(userId);
+  return { ...gameStart, p1: p1, p2: p2 };
 };
 
 const roomInfo = async (userId, roomId) => {
@@ -47,8 +50,13 @@ const roomInfo = async (userId, roomId) => {
   if (!roomExist) {
     throw new NotFoundError("Room is not found");
   }
+  const p1 = await userRepository.findUserById(roomExist.player1_id);
+  const p2 =
+    roomExist.player2_id != null
+      ? await userRepository.findUserById(roomExist.player2_id)
+      : { id: null, name: null, avatar: null, point: null };
 
-  return roomExist;
+  return { ...roomExist, p1: p1, p2: p2 };
 };
 
 const playersHand = ({ player1_id, player2_id }, userId) => {
@@ -98,7 +106,10 @@ const handlerWinner = async (result, roomId, roomInfo) => {
         ? { winner: roomInfo.player1_id, loser: roomInfo.player2_id }
         : { winner: roomInfo.player2_id, loser: roomInfo.player1_id };
 
-    return await roomRepository.setWinner(roomId, gameEnd);
+    const result = await roomRepository.setWinner(roomId, gameEnd);
+    const p1 = await userRepository.findUserById(roomInfo.player1_id);
+    const p2 = await userRepository.findUserById(roomInfo.player2_id);
+    return { ...result, p1: p1, p2: p2 };
   }
 };
 
@@ -181,9 +192,13 @@ const playAgain = async (userId, roomId) => {
       userId,
       "playing"
     );
-    return joinRoom;
+    const p1 = await userRepository.findUserById(catchAgainGame.player1_id);
+    const p2 = await userRepository.findUserById(userId);
+    return { ...joinRoom, p1: p1, p2: p2 };
   } else {
-    return await roomRepository.createRoom(userId, "again");
+    const roomCreated = await roomRepository.createRoom(userId, "again");
+    const userData = await userRepository.findUserById(userId);
+    return { ...roomCreated, p1: userData };
   }
 };
 
