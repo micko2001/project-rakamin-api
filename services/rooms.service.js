@@ -107,9 +107,7 @@ const handlerWinner = async (result, roomId, roomInfo) => {
         : { winner: roomInfo.player2_id, loser: roomInfo.player1_id };
 
     const result = await roomRepository.setWinner(roomId, gameEnd);
-    const p1 = await userRepository.findUserById(roomInfo.player1_id);
-    const p2 = await userRepository.findUserById(roomInfo.player2_id);
-    return { ...result, p1: p1, p2: p2 };
+    return result;
   }
 };
 
