@@ -56,8 +56,8 @@ const roomInfo = async (userId, roomId) => {
       ? await userRepository.findUserById(roomExist.player2_id)
       : { id: null, name: null, avatar: null, point: null };
   if (
-    roomExist.player1_id &&
-    roomExist.player2_id &&
+    roomExist.hand_position_p2 &&
+    roomExist.hand_position_p1 &&
     roomExist.game_status == "playing"
   ) {
     const startedAt = new Date(roomExist.initialize_at);
@@ -82,7 +82,7 @@ const roomInfo = async (userId, roomId) => {
     // Proses hasil pertandingan
     const infos = await handlerWinner(result, roomId, roomExist);
 
-    return { ...roomExist, info: infos };
+    return {...roomExist, p1: p1, p2: p2,  info: infos };
   }else{
   return { ...roomExist, p1: p1, p2: p2 };}
 };
