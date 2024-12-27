@@ -137,52 +137,72 @@ const submitHand = async (handPosition, position, roomId) => {
 };
 
 const setWinner = async (roomId, result) => {
+  const client = await pool.connect();
   try {
-    pool.query(
-      `UPDATE rooms SET
-      win = $1,
-      lose = $2,
-      finish_at = NOW(),
-      game_status = 'finished'
-      WHERE id = $3
-      `,
+    await client.query('BEGIN'); // Mulai transaksi
+
+    // Update room status
+    await client.query(
+      `UPDATE rooms
+      SET win = $1,
+          lose = $2,
+          finish_at = NOW(),
+          game_status = 'finished'
+      WHERE id = $3`,
       [result.winner, result.loser, roomId]
     );
+
     // Update points for the winner
-    await pool.query(
+    await client.query(
       `UPDATE users
       SET point = point + 10
       WHERE id = $1`,
       [result.winner]
     );
 
-    // Update points for the loser, ensuring points don't go negative
-    await pool.query(
+    // Update points for the loser
+    await client.query(
       `UPDATE users
       SET point = GREATEST(point - 5, 0)
       WHERE id = $1`,
       [result.loser]
     );
+
+    await client.query('COMMIT'); // Commit transaksi
     return { win: result.winner, lose: result.loser, game_status: "finished" };
   } catch (err) {
+    await client.query('ROLLBACK'); // Rollback transaksi jika terjadi kesalahan
     throw new DatabaseError("something wrong happened");
+  } finally {
+    client.release(); // Pastikan koneksi dilepaskan
   }
 };
+
 const setDraw = async (roomId, result) => {
+  const client = await pool.connect();
   try {
-    pool.query(
-      `UPDATE rooms SET 
-      draw = $2,
-      finish_at = NOW(),
-      game_status = 'finished'
-      WHERE id =$1`,
-      [roomId, result]
+    await client.query('BEGIN'); // Mulai transaksi
+
+    // Update room status for draw
+    await client.query(
+      `UPDATE rooms
+      SET draw = $1,
+          finish_at = NOW(),
+          game_status = 'finished'
+      WHERE id = $2`,
+      [result, roomId]
     );
+
+    await client.query('COMMIT'); // Commit transaksi
     return { result: "draw" };
   } catch (err) {
-    throw new DatabaseError("Something wrong happened");
+    await client.query('ROLLBACK'); // Rollback transaksi jika terjadi kesalahan
+    throw new DatabaseError(`Error setting draw status for room ${roomId}: ${err.message}`);
+  } finally {
+    client.release(); // Pastikan koneksi dilepaskan
   }
 };
+
 
 const gameAgain = async (playerId) => {
   try {
