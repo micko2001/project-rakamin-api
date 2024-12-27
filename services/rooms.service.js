@@ -55,8 +55,36 @@ const roomInfo = async (userId, roomId) => {
     roomExist.player2_id != null
       ? await userRepository.findUserById(roomExist.player2_id)
       : { id: null, name: null, avatar: null, point: null };
+  if (
+    roomExist.player1_id &&
+    roomExist.player2_id &&
+    roomExist.game_status == "playing"
+  ) {
+    const startedAt = new Date(roomExist.initialize_at);
+    const now = new Date();
+    const diffMinutes = (now - startedAt) / (1000 * 60);
 
-  return { ...roomExist, p1: p1, p2: p2 };
+    if (diffMinutes > 5) {
+      //update game_status to invalid
+      const result = await roomRepository.invalidRoom(roomId);
+      return result;
+    }
+
+    const playersData = playersHand(roomExist, userId);
+
+    // Tentukan posisi tangan berdasarkan pemain yang mengirim data
+    const player1Hand = roomExist.hand_position_p1;
+    const player2Hand = roomExist.hand_position_p2;
+
+    // Tentukan pemenang dan log hasil
+    const result = determineWinner(player1Hand, player2Hand);
+
+    // Proses hasil pertandingan
+    const infos = await handlerWinner(result, roomId, roomExist);
+
+    return { ...roomExist, info: infos };
+  }else{
+  return { ...roomExist, p1: p1, p2: p2 };}
 };
 
 const playersHand = ({ player1_id, player2_id }, userId) => {
