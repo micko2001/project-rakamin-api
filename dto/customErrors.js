@@ -7,7 +7,7 @@ class UserAlreadyExistsError extends Error {
 }
 
 class AuthenticationError extends Error {
-  constructor(message = "Invalid credentials") {
+  constructor(message = "Your Password or Email is wrong") {
     super(message);
     this.name = "AuthenticationError";
     this.status = 401;
@@ -30,9 +30,18 @@ class ValidationError extends Error {
   }
 }
 
+class DatabaseError extends Error {
+  constructor(message = "server has a problem") {
+    super(message);
+    this.name = "DatabaseError";
+    this.status = 500;
+  }
+}
+
 module.exports = {
   UserAlreadyExistsError,
   AuthenticationError,
   NotFoundError,
   ValidationError,
+  DatabaseError,
 };

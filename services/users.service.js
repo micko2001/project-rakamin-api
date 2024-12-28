@@ -1,4 +1,4 @@
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const userRepository = require("../repositories/users.repository");
 const { generateAccessToken } = require("../utils/auth.util");
 const {
@@ -9,6 +9,7 @@ const {
 
 const createUser = async (userData) => {
   const existingUser = await userRepository.findUserByEmail(userData.email);
+
   if (existingUser) {
     throw new UserAlreadyExistsError();
   }
@@ -56,4 +57,31 @@ const getUserById = async (id) => {
   };
 };
 
-module.exports = { createUser, login, getUserById };
+const getLeaderboards = async () => {
+  try {
+    const result = await userRepository.getTopUsers();
+    return result.rows;
+  } catch (error) {
+    throw new NotFoundError("Error fetching ranks");
+  }
+};
+
+const getHistory = async (id) => {
+  const user = await userRepository.getHistory(id);
+
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
+
+  return {
+    ...user,
+  };
+};
+
+module.exports = {
+  createUser,
+  login,
+  getUserById,
+  getLeaderboards,
+  getHistory,
+};

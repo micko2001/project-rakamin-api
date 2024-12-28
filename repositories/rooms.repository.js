@@ -1,5 +1,7 @@
 const pool = require("../db/db");
 
+const { DatabaseError } = require("../dto/customErrors");
+
 const createRoom = async (userId, game_status) => {
   const client = await pool.connect();
 
@@ -18,7 +20,7 @@ const createRoom = async (userId, game_status) => {
     return newRoom;
   } catch (err) {
     //console.log(err);
-    throw new Error("Something wrong happened");
+    throw new DatabaseError("Something wrong happened");
   }
 };
 
@@ -36,10 +38,10 @@ const joinRoom = async (roomId, awayId, gameStatus) => {
       [awayId, gameStatus, roomId]
     );
     await client.query("COMMIT");
-    return gameStatus;
+    return { roomId: roomId, gameStatus: gameStatus };
   } catch (error) {
     //console.log(err);
-    throw new Error("Something wrong happened");
+    throw new DatabaseError("Something wrong happened");
   }
 };
 
@@ -47,7 +49,7 @@ const invalidRoom = async (roomId) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-    const data = await client.query(
+    await client.query(
       `UPDATE rooms SET
        game_status = 'invalid',
        initialize_at = NOW()
@@ -58,7 +60,7 @@ const invalidRoom = async (roomId) => {
 
     return "Room is expired";
   } catch (err) {
-    throw new Error("something wrong happened");
+    throw new DatabaseError("something wrong happened");
   }
 };
 
@@ -77,15 +79,14 @@ const findRoomById = async (playerId, roomId) => {
 
     return result.rows[0];
   } catch (error) {
-    throw new Error("Something went wrong");
+    throw new DatabaseError("Something went wrong");
   }
 };
 
 const findRoomId = async (playerId, roomId) => {
   try {
     const roomIsFound = await pool.query(
-      `SELECT id, player1_id, player2_id, game_status,
-       created_at, initialize_at FROM rooms 
+      `SELECT * FROM rooms 
        WHERE rooms.id = $1 AND (player1_id = $2 OR player2_id = $2)
       `,
       [roomId, playerId]
@@ -93,28 +94,7 @@ const findRoomId = async (playerId, roomId) => {
     return roomIsFound.rows[0];
   } catch (err) {
     console.log(err);
-    throw new Error("Something went wrong");
-  }
-};
-
-const findGameId = async (playerId, roomId) => {
-  try {
-    const gameIsFound = await pool.query(
-      `SELECT 
-        rooms.*, 
-        users.avatar,
-        users.name
-      FROM rooms
-      JOIN users
-        ON users.id = $2 
-       WHERE rooms.id = $1 AND (player1_id = $2 OR player2_id = $2)
-      `,
-      [roomId, playerId]
-    );
-    return gameIsFound.rows[0];
-  } catch (err) {
-    console.log(err);
-    throw new Error("Something went wrong");
+    throw new DatabaseError("Something went wrong");
   }
 };
 
@@ -122,10 +102,12 @@ const submitHand = async (handPosition, position, roomId) => {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
+
+    console.log(roomId, handPosition, position);
     if (position == 1) {
       await client.query(
         `UPDATE rooms SET
-          hand_position_p1 = $1,
+          hand_position_p1 = $1
           WHERE id =$2`,
         [handPosition, roomId]
       );
@@ -137,7 +119,7 @@ const submitHand = async (handPosition, position, roomId) => {
     } else if (position == 2) {
       await client.query(
         `UPDATE rooms SET
-          hand_position_p2 = $1,
+          hand_position_p2 = $1
           WHERE id =$2`,
         [handPosition, roomId]
       );
@@ -147,55 +129,93 @@ const submitHand = async (handPosition, position, roomId) => {
         position: position,
       };
     } else {
-      throw new Error("User position is unknown");
+      throw new DatabaseError("User position is unknown");
     }
   } catch (err) {
-    throw new Error("something went wrong");
+    throw new DatabaseError("something went wrong");
   }
 };
 
-// const setWinLose = async (roomId) => {
-//   const client = await pool.connect();
-//   try {
-//     const result = await.client.query(
-//       `SELECT win, lose FROM rooms WHERE id = $1`,
-//       [roomId]
-//     );
-
-//     return result.rows[0];
-//   }
-// }
-
-const setWinLose = async (roomId, winner, loser) => {
+const setWinner = async (roomId, result) => {
   const client = await pool.connect();
   try {
-    await client.query("BEGIN");
-    await client.query(
-      `UPDATE rooms SET
-      game_status = "finished",
-      finish_at = now(),
-      win = $1,
-      lose = $2
-      WHERE id = $3`,
-      [roomId, winner, loser]
+    await client.query('BEGIN'); // Mulai transaksi
 
-    );
+    // Update room status
     await client.query(
-      `UPDATE users SET point = point + 10 WHERE id = $1`,
-      [winner]
+      `UPDATE rooms
+      SET win = $1,
+          lose = $2,
+          finish_at = NOW(),
+          game_status = 'finished'
+      WHERE id = $3`,
+      [result.winner, result.loser, roomId]
     );
+
+    // Update points for the winner
     await client.query(
-      `UPDATE users 
-      SET point = CASE
-        WHEN point < 5 AND id = $1 THEN 0
-        WHEN point >= 5 AND id = $1 THEN point - 5 END
-        WHERE id = $1`,
-      [loser]
+      `UPDATE users
+      SET point = point + 10
+      WHERE id = $1`,
+      [result.winner]
     );
-    return {win: winner, lose: loser, game_status: "finished"}
+
+    // Update points for the loser
+    await client.query(
+      `UPDATE users
+      SET point = GREATEST(point - 5, 0)
+      WHERE id = $1`,
+      [result.loser]
+    );
+
+    await client.query('COMMIT'); // Commit transaksi
+    return { win: result.winner, lose: result.loser, game_status: "finished" };
   } catch (err) {
-    await client.query("ROLLBACK");
-    throw new Error("Failed to update points")
+    await client.query('ROLLBACK'); // Rollback transaksi jika terjadi kesalahan
+    throw new DatabaseError("something wrong happened");
+  } finally {
+    client.release(); // Pastikan koneksi dilepaskan
+  }
+};
+
+const setDraw = async (roomId, result) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN'); // Mulai transaksi
+
+    // Update room status for draw
+    await client.query(
+      `UPDATE rooms
+      SET draw = $1,
+          finish_at = NOW(),
+          game_status = 'finished'
+      WHERE id = $2`,
+      [result, roomId]
+    );
+
+    await client.query('COMMIT'); // Commit transaksi
+    return { result: "draw" };
+  } catch (err) {
+    await client.query('ROLLBACK'); // Rollback transaksi jika terjadi kesalahan
+    throw new DatabaseError(`Error setting draw status for room ${roomId}: ${err.message}`);
+  } finally {
+    client.release(); // Pastikan koneksi dilepaskan
+  }
+};
+
+
+const gameAgain = async (playerId) => {
+  try {
+    const roomIsFound = await pool.query(
+      `SELECT * FROM rooms 
+       WHERE game_status='again' AND (player1_id = $1 OR player2_id = $1)
+      `,
+      [playerId]
+    );
+    return roomIsFound.rows[0];
+  } catch (err) {
+    console.log(err);
+    throw new DatabaseError("Something went wrong");
   }
 };
 
@@ -205,7 +225,8 @@ module.exports = {
   joinRoom,
   invalidRoom,
   findRoomId,
-  findGameId,
   submitHand,
-  setWinLose,
+  setDraw,
+  setWinner,
+  gameAgain,
 };

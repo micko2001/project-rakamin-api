@@ -10,21 +10,13 @@ function authenticateToken(req, res, next) {
 
   jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
     if (err) {
-      return res.status(403).json({ error: "unauthorized" });
+      if (err.name === "TokenExpiredError") {
+        return res.status(403).json({ error: "Token expired" });
+      } else {
+        return res.status(403).json({ error: "unauthorized" });
+      }
     }
-
-    // const currentTime = Math.floor(Date.now()/1000)
-    // const expBuffer = 3*60
-    // if (user.exp - currentTime <= expBuffer) {
-    //   const newToken = jwt.sign(
-    //     {id: user.id, name: user.name},
-    //     process.env,TOKEN_SECRET,
-    //     {expiredIn: "3d"}
-    //   )
-    //   res.setHeader("New-JWT-token", newToken)
-    // }
     req.user = user;
-
     next();
   });
 }
