@@ -105,17 +105,17 @@ function determineWinner(hand1, hand2) {
       rock: "lose",
       paper: "lose",
       scissors: "lose",
-      unsubmit: "error",
+      unsubmit: "draw",
     },
   };
 
-  if (hand1 === "unsubmit" && hand2 === "unsubmit")
-    return { error: "Both hands cannot be unsubmit." };
+  // if (hand1 === "unsubmit" && hand2 === "unsubmit")
+  //   return { error: "Both hands cannot be unsubmit." };
 
   const result = outcomes[hand1]?.[hand2];
 
   if (!result) return { error: "Invalid hand positions." };
-  if (result === "error") return { error: "Both hands cannot be unsubmit." };
+  // if (result === "error") return { error: "Both hands cannot be unsubmit." };
 
   if (result === "draw") return { draw: true };
   return { winner: result === "win" ? "player1" : "player2", draw: false };
